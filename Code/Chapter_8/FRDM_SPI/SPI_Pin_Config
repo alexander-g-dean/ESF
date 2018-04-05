@@ -1,0 +1,6 @@
+        
+PTE 1   J2-20  1-MOSI;
+PTE 2   J9-9   SCK 
+PTE 3   J9-11  1-MIS0;
+PTE 4   J9-13  ~SS
+PTE 5   J9-15  GPIO
