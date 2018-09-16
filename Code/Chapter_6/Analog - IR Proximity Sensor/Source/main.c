@@ -41,7 +41,7 @@ void Init_IR_LED(void) {
 unsigned Measure_IR(void) {
 	volatile unsigned res=0;
 	
-	ADC0->SC1[0] = IR_PHOTOTRANSISTOR_CHANNEL; // start conversion on channel 0
+	ADC0->SC1[0] = IR_PHOTOTRANSISTOR_CHANNEL; // start conversion on IR channel
 	
 	while (!(ADC0->SC1[0] & ADC_SC1_COCO_MASK))
 		; // Wait until conversion is complete
