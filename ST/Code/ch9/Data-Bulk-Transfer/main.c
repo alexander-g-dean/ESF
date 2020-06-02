@@ -7,12 +7,42 @@
 	PB2 for DMA copy
 */
 
-#define ARR_SIZE (256)
+void Init_MCO(void) { // Optional code to confirm CPU clock frequency
+	// Enable peripheral clock of GPIOA
+	RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
+	// Alternate function for PA8
+	GPIOA->MODER = (GPIOA->MODER & ~GPIO_MODER_MODER8) | _VAL2FLD(GPIO_MODER_MODER8, 2);
+	// MCO is ALT 0, so selected by default
+	
+	// Select MCO source 
+	RCC->CFGR |= RCC_CFGR_MCO_SYSCLK | _VAL2FLD(RCC_CFGR_MCOPRE, 2); // Divide by 4
+}
 
+// Start Listing DMA_Init_Compare_Arrays
+#define ARR_SIZE (256)
 uint32_t s[ARR_SIZE], d[ARR_SIZE];
 
+void Init_Arrays(void) {
+	uint32_t i;
+	for (i = 0; i < ARR_SIZE; i++) {
+		s[i] = i;
+		d[i] = 0;
+	}
+}
+
+void Compare_Arrays(void) {
+	uint32_t i;
+	for (i = 0; i < ARR_SIZE; i++) {
+		if (d[i] != s[i]) {
+			while (1);								// stop here on error
+		}
+	}
+}
+// End Listing DMA_Init_Compare_Arrays
+
+// Start Listing HAL_DMA_Init_DMA_To_Copy
 DMA_HandleTypeDef DMA_handle;
-void Init_DMA_To_Copy(void) {
+void HAL_Init_DMA_To_Copy(void) {
 	DMA_InitTypeDef DMA_init;
 	__HAL_RCC_DMA1_CLK_ENABLE();
 
@@ -21,86 +51,96 @@ void Init_DMA_To_Copy(void) {
 	DMA_init.PeriphInc = DMA_PINC_ENABLE;
 	DMA_init.MemInc = DMA_MINC_ENABLE;
 	DMA_init.MemDataAlignment = DMA_MDATAALIGN_WORD;
-	DMA_init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
+	DMA_init.PeriphDataAlignment =
+			DMA_PDATAALIGN_WORD;
 	DMA_handle.Init = DMA_init;
 	DMA_handle.Instance = DMA1_Channel1;
 	DMA_handle.ChannelIndex = 1;
 	if (HAL_DMA_Init(&DMA_handle) != HAL_OK)
 		while (1);
 }
+// End Listing HAL_DMA_Init_DMA_To_Copy
 
-void Copy_Longwords(uint32_t *source, uint32_t *dest, uint32_t count) {
-	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, GPIO_PIN_SET);
-	HAL_DMA_Start(&DMA_handle, (uint32_t)source, (uint32_t)dest, count);
-	HAL_DMA_PollForTransfer(&DMA_handle, HAL_DMA_FULL_TRANSFER, 0xffff);
-	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, GPIO_PIN_RESET);
-}
-
+// Start Listing DMA_Test_DMA_Copy
 void Test_DMA_Copy(void) {
-	uint32_t i;
-	Init_DMA_To_Copy();
-	for (i = 0; i < ARR_SIZE; i++) {
-		s[i] = i;
-		d[i] = 0;
-	}
-	Copy_Longwords(s, d, ARR_SIZE);
-}
+	GPIOB->BSRR = GPIO_BSRR_BS_2;
+	RCC->AHBENR |= RCC_AHBENR_DMA1EN;
+	DMA1_Channel1->CCR = DMA_CCR_MEM2MEM | 
+		_VAL2FLD(DMA_CCR_MSIZE, 2) | _VAL2FLD(DMA_CCR_PSIZE, 2) |
+		DMA_CCR_MINC | DMA_CCR_PINC | DMA_CCR_DIR 
+		| _VAL2FLD(DMA_CCR_PL, 3);
 
+	DMA1_Channel1->CNDTR = ARR_SIZE;
+	DMA1_Channel1->CMAR = (uint32_t) s;
+	DMA1_Channel1->CPAR = (uint32_t) d;
+	DMA1_Channel1->CCR |= DMA_CCR_EN;	// Enable DMA transfer
+	while (!(DMA1->ISR & DMA_ISR_TCIF1))
+		;
+	DMA1->IFCR = DMA_IFCR_CTCIF1;	// Clear transfer complete flag
+	GPIOB->BSRR = GPIO_BSRR_BR_2;
+}
+// End Listing DMA_Test_DMA_Copy
+
+// Start Listing DMA_Test_SW_Copy
 void Test_SW_Copy(void) {
-	uint32_t * ps, *pd;
 	uint32_t i;
 
-	ps = s;
-	pd = d;
-	
+	GPIOB->BSRR = GPIO_BSRR_BS_1;
 	for (i = 0; i < ARR_SIZE; i++) {
-		s[i] = i;
-		d[i] = 0;
+		d[i] = s[i];
 	}
-
-	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_SET);
-	for (i=0; i<ARR_SIZE; i++) {
-		*pd++ = *ps++;
-	}
-	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
+	GPIOB->BSRR = GPIO_BSRR_BR_1;
 }
+// End Listing DMA_Test_SW_Copy
 
 void Init_GPIO(void) {
-	GPIO_InitTypeDef GPIO_InitStruct;
-	
-	__HAL_RCC_GPIOB_CLK_ENABLE();
-  // Init PB1 as output
-  GPIO_InitStruct.Pin = GPIO_PIN_1;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+	// Enable peripheral clock of GPIOB
+	RCC->AHBENR |= RCC_AHBENR_GPIOBEN;
 
-  // Init PB2 as output
-  GPIO_InitStruct.Pin = GPIO_PIN_2;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+	// Configure two pins as output
+	// Clear mode fields to 00
+	GPIOB->MODER &= ~(GPIO_MODER_MODER1 | GPIO_MODER_MODER2);
+	// Set mode fields to 01 for output
+	GPIOB->MODER |=	_VAL2FLD(GPIO_MODER_MODER1, 1) |
+			_VAL2FLD(GPIO_MODER_MODER2, 1);
 
-	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, GPIO_PIN_RESET);
+	// Clear outputs
+	GPIOB->BSRR = GPIO_BSRR_BR_1 | GPIO_BSRR_BR_2;
 }
 
-int main(void) {
-	uint32_t i;
-	Set_Clocks_To_48MHz();
-	
-	Init_GPIO();
+void HAL_Init_GPIO(void) {
+	GPIO_InitTypeDef GPIO_InitStruct;
 
+	__HAL_RCC_GPIOB_CLK_ENABLE();
+	// Init PB1 as output
+	GPIO_InitStruct.Pin = GPIO_PIN_1;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+	// Init PB2 as output
+	GPIO_InitStruct.Pin = GPIO_PIN_2;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1,
+										GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2,
+										GPIO_PIN_RESET);
+}
+
+// Start Listing DMA_Copy_main
+int main(void) {
+	Set_Clocks_To_48MHz();
+	Init_GPIO();
+	Init_MCO();
 	while (1) {
-		Test_SW_Copy();
-		// Check that the copy has been successful
-		for (i = 0; i < ARR_SIZE; i++) {
-				if (d[i] != s[i])
-					while (1);
-		}	
-		Test_DMA_Copy();
-		// Check that the copy has been successful
-		for (i = 0; i < ARR_SIZE; i++) {
-				if (d[i] != s[i])
-					while (1);
-		}
+		Init_Arrays();
+		Test_SW_Copy(); 	// PB1 == 1 when active 
+		Compare_Arrays(); // Stop if error
+		
+		Init_Arrays();
+		Test_DMA_Copy(); 	// PB2 == 1 when active
+		Compare_Arrays(); // Stop if error
 	}
 }
+// End Listing DMA_Copy_main

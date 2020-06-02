@@ -15,7 +15,6 @@ void Delay(volatile unsigned int time_del) {
 // Start Listing 2.ShortDelay
 void ShortDelay(volatile unsigned int time_del) {
 	volatile int n;
-
 	while (time_del--);
 }
 

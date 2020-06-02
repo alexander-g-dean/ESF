@@ -3,7 +3,7 @@
  * Auto generated Run-Time-Environment Configuration File
  *      *** Do not modify ! ***
  *
- * Project: 'analog_wavefrom_generation' 
+ * Project: 'analog_waveform_generation' 
  * Target:  'Target 1' 
  */
 

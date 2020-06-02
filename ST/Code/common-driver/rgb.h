@@ -16,8 +16,9 @@
 #define LED_B_ON_MSK	(GPIO_BSRR_BR_7)
 
 void Init_GPIO_RGB(void);
+void Init_GPIO_Discrete_RGB(int use_r, int use_g, int use_b, int led_on);
 
 void Control_RGB_LEDs(int r_on, int g_on, int b_on);
 void Control_RGB_LEDs_2(int r_on, int g_on, int b_on);
-
+void Control_Discrete_RGB_LEDs(int r_on, int g_on, int b_on);
 #endif

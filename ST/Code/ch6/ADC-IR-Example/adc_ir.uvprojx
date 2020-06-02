@@ -412,50 +412,8 @@
   <RTE>
     <apis/>
     <components>
-      <component Cclass="CMSIS" Cgroup="CORE" Cvendor="ARM" Cversion="5.1.2" condition="ARMv6_7_8-M Device">
-        <package name="CMSIS" schemaVersion="1.3" url="http://www.keil.com/pack/" vendor="ARM" version="5.4.0"/>
-        <targetInfos>
-          <targetInfo name="Target 1"/>
-        </targetInfos>
-      </component>
-      <component Cbundle="Standalone" Cclass="Device" Cgroup="STM32Cube HAL" Csub="ADC" Cvendor="Keil" Cversion="1.7.0" condition="STM32F0 HAL DMA">
-        <package name="STM32F0xx_DFP" schemaVersion="1.2" url="http://www.keil.com/pack/" vendor="Keil" version="2.0.0"/>
-        <targetInfos>
-          <targetInfo name="Target 1"/>
-        </targetInfos>
-      </component>
-      <component Cbundle="Standalone" Cclass="Device" Cgroup="STM32Cube HAL" Csub="COMMON" Cvendor="Keil" Cversion="1.7.0" condition="STM32F0 STARTUP CORTEX GPIO RCC FLASH">
-        <package name="STM32F0xx_DFP" schemaVersion="1.2" url="http://www.keil.com/pack/" vendor="Keil" version="2.0.0"/>
-        <targetInfos>
-          <targetInfo name="Target 1"/>
-        </targetInfos>
-      </component>
-      <component Cbundle="Standalone" Cclass="Device" Cgroup="STM32Cube HAL" Csub="CORTEX" Cvendor="Keil" Cversion="1.7.0" condition="STM32F0 HAL">
-        <package name="STM32F0xx_DFP" schemaVersion="1.2" url="http://www.keil.com/pack/" vendor="Keil" version="2.0.0"/>
-        <targetInfos>
-          <targetInfo name="Target 1"/>
-        </targetInfos>
-      </component>
-      <component Cbundle="Standalone" Cclass="Device" Cgroup="STM32Cube HAL" Csub="DMA" Cvendor="Keil" Cversion="1.7.0" condition="STM32F0 HAL">
-        <package name="STM32F0xx_DFP" schemaVersion="1.2" url="http://www.keil.com/pack/" vendor="Keil" version="2.0.0"/>
-        <targetInfos>
-          <targetInfo name="Target 1"/>
-        </targetInfos>
-      </component>
-      <component Cbundle="Standalone" Cclass="Device" Cgroup="STM32Cube HAL" Csub="FLASH" Cvendor="Keil" Cversion="1.7.0" condition="STM32F0 HAL">
-        <package name="STM32F0xx_DFP" schemaVersion="1.2" url="http://www.keil.com/pack/" vendor="Keil" version="2.0.0"/>
-        <targetInfos>
-          <targetInfo name="Target 1"/>
-        </targetInfos>
-      </component>
-      <component Cbundle="Standalone" Cclass="Device" Cgroup="STM32Cube HAL" Csub="GPIO" Cvendor="Keil" Cversion="1.7.0" condition="STM32F0 HAL">
-        <package name="STM32F0xx_DFP" schemaVersion="1.2" url="http://www.keil.com/pack/" vendor="Keil" version="2.0.0"/>
-        <targetInfos>
-          <targetInfo name="Target 1"/>
-        </targetInfos>
-      </component>
-      <component Cbundle="Standalone" Cclass="Device" Cgroup="STM32Cube HAL" Csub="RCC" Cvendor="Keil" Cversion="1.7.0" condition="STM32F0 HAL">
-        <package name="STM32F0xx_DFP" schemaVersion="1.2" url="http://www.keil.com/pack/" vendor="Keil" version="2.0.0"/>
+      <component Cclass="CMSIS" Cgroup="CORE" Cvendor="ARM" Cversion="5.3.0" condition="ARMv6_7_8-M Device">
+        <package name="CMSIS" schemaVersion="1.3" url="http://www.keil.com/pack/" vendor="ARM" version="5.6.0"/>
         <targetInfos>
           <targetInfo name="Target 1"/>
         </targetInfos>
@@ -477,12 +435,10 @@
         </targetInfos>
       </file>
       <file attr="config" category="header" name="MDK\Templates\Inc\stm32f0xx_hal_conf.h" version="1.9.0">
-        <instance index="0">RTE\Device\STM32F091RCTx\stm32f0xx_hal_conf.h</instance>
+        <instance index="0" removed="1">RTE\Device\STM32F091RCTx\stm32f0xx_hal_conf.h</instance>
         <component Cbundle="Standalone" Cclass="Device" Cgroup="STM32Cube HAL" Csub="COMMON" Cvendor="Keil" Cversion="1.7.0" condition="STM32F0 STARTUP CORTEX GPIO RCC FLASH"/>
         <package name="STM32F0xx_DFP" schemaVersion="1.2" url="http://www.keil.com/pack/" vendor="Keil" version="2.0.0"/>
-        <targetInfos>
-          <targetInfo name="Target 1"/>
-        </targetInfos>
+        <targetInfos/>
       </file>
       <file attr="config" category="source" name="Drivers\CMSIS\Device\ST\STM32F0xx\Source\Templates\system_stm32f0xx.c" version="2.3.3">
         <instance index="0">RTE\Device\STM32F091RCTx\system_stm32f0xx.c</instance>

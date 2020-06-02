@@ -140,7 +140,7 @@
         <SetRegEntry>
           <Number>0</Number>
           <Key>ST-LINKIII-KEIL_SWO</Key>
-          <Name>-U0672FF504955707267234833 -O10446 -SF4000 -C0 -A0 -I0 -HNlocalhost -HP7184 -P2 -N00("ARM CoreSight SW-DP") -D00(0BB11477) -L00(0) -TO18 -TC10000000 -TP21 -TDS8007 -TDT0 -TDC1F -TIEFFFFFFFF -TIP8 -FO23 -FD20000000 -FC1000 -FN1 -FF0STM32F0xx_256.FLM -FS08000000 -FL040000 -FP0($$Device:STM32F091RCTx$CMSIS\Flash\STM32F0xx_256.FLM)</Name>
+          <Name>-U0672FF504955707267234833 -O10446 -SF10000 -C0 -A0 -I0 -HNlocalhost -HP7184 -P2 -N00("ARM CoreSight SW-DP (ARM Core") -D00(0BB11477) -L00(0) -TO131090 -TC10000000 -TT10000000 -TP21 -TDS8007 -TDT0 -TDC1F -TIEFFFFFFFF -TIP8 -FO31 -FD20000000 -FC1000 -FN1 -FF0STM32F0xx_256.FLM -FS08000000 -FL040000 -FP0($$Device:STM32F091RCTx$CMSIS\Flash\STM32F0xx_256.FLM)</Name>
         </SetRegEntry>
         <SetRegEntry>
           <Number>0</Number>
@@ -152,9 +152,9 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>130</LineNumber>
+          <LineNumber>81</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134222064</Address>
+          <Address>134218648</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -163,14 +163,14 @@
           <BreakIfRCount>1</BreakIfRCount>
           <Filename>.\main.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\analog_wavefrom_generation\main.c\130</Expression>
+          <Expression>\\analog_wavefrom_generation\main.c\81</Expression>
         </Bp>
         <Bp>
           <Number>1</Number>
           <Type>0</Type>
-          <LineNumber>136</LineNumber>
+          <LineNumber>205</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134222712</Address>
+          <Address>134220120</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -179,7 +179,7 @@
           <BreakIfRCount>1</BreakIfRCount>
           <Filename>.\main.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\analog_wavefrom_generation\main.c\136</Expression>
+          <Expression>\\analog_wavefrom_generation\main.c\205</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>
@@ -242,15 +242,7 @@
           <WinId>35905</WinId>
         </Entry>
         <Entry>
-          <Name>System Viewer\DMA2</Name>
-          <WinId>35903</WinId>
-        </Entry>
-        <Entry>
-          <Name>System Viewer\GPIOA</Name>
-          <WinId>35902</WinId>
-        </Entry>
-        <Entry>
-          <Name>System Viewer\GPIOB</Name>
+          <Name>System Viewer\TIM6</Name>
           <WinId>35904</WinId>
         </Entry>
       </SystemViewers>
