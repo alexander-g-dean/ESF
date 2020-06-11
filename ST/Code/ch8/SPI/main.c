@@ -3,9 +3,63 @@
 #include "rgb.h"
 #include "clock.h"
 
+#define CLEAR_FIELD(REG, FLD) 				((REG) &= ~(FLD))
+#define SET_FIELD(REG, FLD) 					((REG) |= (FLD))
+// For pre-aligned value AL_VAL
+#define MODIFY_FIELD_AL(REG, FLD, AL_VAL) ((REG) = ((REG) & ~(FLD)) | AL_VAL)
+// For unaligned value VAL
+// #define MODIFY_FIELD(REG, FLD, Val) ((REG) = ((REG) & ~(FLD)) | _VAL2FLD(FLD, Val))
+// #define MODIFY_FIELD(REG, Field, Val) ((REG) = _VAL2FLD(Field, Val))
+
+#define MODIFY_FIELD(reg, field, value) ((reg) = ((reg) & ~(field ## _Msk)) | (((uint32_t)(value) << field ## _Pos) & field ## _Msk))
+
+// Start Listing SPI_SPI_Init
+void Init_SPI1(void) {
+  // Clock gating for SPI1 and GPIO A and B
+	RCC->APB2ENR |= RCC_APB2ENR_SPI1EN;
+	RCC->AHBENR |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOBEN;
+
+  // GPIO A pin 15 in alternate function 0 (SPI1) for NSS
+	// Set mode field to 2 for alternate function
+	MODIFY_FIELD(GPIOA->MODER, GPIO_MODER_MODER15, 2);
+	// Select SPI1 (AF = 0) for alternate function
+	MODIFY_FIELD(GPIOA->AFR[1], GPIO_AFRH_AFSEL15, 0);
+	
+  // GPIO B pin 3, 4, 5 in alternate function 0 (SPI1) for SCK, MISO, MOSI
+	// Set each mode field to 2 for alternate function
+	MODIFY_FIELD(GPIOB->MODER, GPIO_MODER_MODER3, 2);
+	MODIFY_FIELD(GPIOB->MODER, GPIO_MODER_MODER4, 2);
+	MODIFY_FIELD(GPIOB->MODER, GPIO_MODER_MODER5, 2);
+	// Select SPI1 (AF = 0) for alternate function
+	MODIFY_FIELD(GPIOB->AFR[0], GPIO_AFRL_AFSEL3, 0);
+	MODIFY_FIELD(GPIOB->AFR[0], GPIO_AFRL_AFSEL4, 0);
+	MODIFY_FIELD(GPIOB->AFR[0], GPIO_AFRL_AFSEL5, 0);
+
+	// Clock is divided by 16 (2^(BR+1))
+	MODIFY_FIELD(SPI1->CR1, SPI_CR1_BR, 3);
+	// Master mode
+	MODIFY_FIELD(SPI1->CR1, SPI_CR1_MSTR, 1);
+	// Select first edge sample, active high clock
+	MODIFY_FIELD(SPI1->CR1, SPI_CR1_CPHA, 0);
+	MODIFY_FIELD(SPI1->CR1, SPI_CR1_CPOL, 1);
+	// Data is LSB first
+	MODIFY_FIELD(SPI1->CR1, SPI_CR1_LSBFIRST, 1);
+	// Data is 8 bits long
+	MODIFY_FIELD(SPI1->CR2, SPI_CR2_DS, 7);
+	
+	// RXNE when at least 1 byte in RX FIFO
+	MODIFY_FIELD(SPI1->CR2, SPI_CR2_FRXTH, 1);
+	// Have NSS pin asserted automatically
+	MODIFY_FIELD(SPI1->CR2, SPI_CR2_NSSP, 1);
+	
+	// Enable SPI
+	MODIFY_FIELD(SPI1->CR1, SPI_CR1_SPE, 1);
+}
+// End Listing SPI_SPI_Init
+
 SPI_InitTypeDef SPI_Init;
 SPI_HandleTypeDef SPI_Handle;
-void Init_SPI1(void) {
+void HAL_Init_SPI1(void) {
 	GPIO_InitTypeDef GPIO_InitStructure;
 
   // Clock gating for SPI1 and GPIO B
@@ -40,35 +94,56 @@ void Init_SPI1(void) {
 	HAL_SPI_Init(&SPI_Handle);
 }
 
-uint8_t Test_SPI_Send(uint8_t d_out) {
+// Start Listing SPI_Send_Receive_Byte
+uint8_t SPI_Send_Receive_Byte(uint8_t d_out) {
+	uint8_t d_in;
+	// Wait until transmitter buffer is empty
+	while ((SPI1->SR & SPI_SR_TXE) == 0)
+		; 
+	// Transmit d_out
+	// Must tell compiler to use a byte write (not half-word)
+	// by casting SPI1->DR into a pointer to a byte (uint8_t).
+	// See STM32F0 Snippets (SPI_01_FullDuplexCommunications).
+	*((uint8_t *)&(SPI1->DR)) = d_out;
+	// Wait until receiver is not empty
+	while ((SPI1->SR & SPI_SR_RXNE) == 0)
+		;
+	// Get d_in
+	d_in = (uint8_t) SPI1->DR;
+	return d_in;
+};
+// End Listing SPI_Send_Receive_Byte
+
+uint8_t HAL_Test_SPI_Send(uint8_t d_out) {
 	uint8_t d_in;
 	
 	HAL_SPI_TransmitReceive(&SPI_Handle, &d_out, &d_in, 1, 100);
-	
 	return d_in;
 }
 
+// Start Listing SPI_Test_SPI_Loopback
 void Test_SPI_Loopback(void) {
 	uint8_t out = 'A';
 	uint8_t in;
 	
 	while (1) {
-		in = Test_SPI_Send(out);
-		if (in != out)
-			// Red: error, data does not match
+		in = SPI_Send_Receive_Byte(out);
+		if (in != out)	// Red: error, data does not match
 			Control_RGB_LEDs(1, 0, 0);
-		else
-			// Green: data matches
+		else  					// Green: data matches
 			Control_RGB_LEDs(0, 1, 0);
 		out++;
 		if (out > 'z')
 			out = 'A';
 	}
 }
+// End Listing SPI_Test_SPI_Loopback
 
+// Start Listing SPI_main
 int main(void) {
-    Set_Clocks_To_48MHz();
-	  Init_GPIO_RGB();
-	  Init_SPI1();
-	  Test_SPI_Loopback();
+	Set_Clocks_To_48MHz();
+	Init_GPIO_RGB();
+	Init_SPI1();
+	Test_SPI_Loopback();
 }
+// End Listing SPI_main

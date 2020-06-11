@@ -1,10 +1,15 @@
 #include <stm32f091xc.h>
 #include <stm32f0xx_hal.h>
 #include "clock.h"
+#include "delay.h"
+#include "field_access.h"
+
+#define F_USART_CLOCK (48UL*1000UL*1000UL) // 48 MHz
+
 
 UART_HandleTypeDef UART_Handle;
 /*********** USART **********/
-void Init_USART2(void) {
+void HAL_Init_USART2(void) {
 	GPIO_InitTypeDef GPIO_InitStructure;
 	UART_InitTypeDef UART_Init;
 	
@@ -31,15 +36,58 @@ void Init_USART2(void) {
 		while (1);
 }
 
+// Start Listing Poll_USART_Init
+#define F_USART_CLOCK (48UL*1000UL*1000UL) // 48 MHz
+
+void Init_USART2(void) {
+	RCC->APB1ENR |= RCC_APB1ENR_USART2EN;
+	RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
+	
+	// GPIO A pin 2 and 3 in alternate function 1 (USART2)
+	// Set mode field to 2 for alternate function
+	MODIFY_FIELD(GPIOA->MODER, GPIO_MODER_MODER2, 2);
+	MODIFY_FIELD(GPIOA->MODER, GPIO_MODER_MODER3, 2);
+	// Select USART2 (AF = 1) as alternate function
+	MODIFY_FIELD(GPIOA->AFR[0], GPIO_AFRL_AFSEL2, 1);
+	MODIFY_FIELD(GPIOA->AFR[0], GPIO_AFRL_AFSEL3, 1);
+	
+	// 9600 baud rate
+	USART2->BRR = F_USART_CLOCK/9600; 
+	// No parity
+	MODIFY_FIELD(USART2->CR1, USART_CR1_PCE, 0);
+	// 8 data bits
+	MODIFY_FIELD(USART2->CR1, USART_CR1_M, 0);
+	// 1 Stop bit
+	MODIFY_FIELD(USART2->CR2, USART_CR2_STOP, 0);
+	
+	// Enable transmitter and receiver and USART
+	MODIFY_FIELD(USART2->CR1, USART_CR1_TE, 1);
+	MODIFY_FIELD(USART2->CR1, USART_CR1_RE, 1);
+	MODIFY_FIELD(USART2->CR1, USART_CR1_UE, 1);
+}
+// End Listing Poll_UART_Init
+
+// Start Listing Poll_UART
+void UART_Transmit(uint8_t data) {
+	while ((USART2->ISR & USART_ISR_TXE) == 0)
+		;
+	USART2->TDR = data;
+}
+uint8_t UART_Receive(void) {
+	while ((USART2->ISR & USART_ISR_RXNE) == 0)
+		;
+	return USART2->RDR;
+}
 int main(void) {
-	uint8_t receive_data;
-	uint8_t transmit_data;
+	uint8_t receive_data, transmit_data;
 	
 	Set_Clocks_To_48MHz();
 	Init_USART2();
+	UART_Transmit('!'); 
 	while (1) {
-		HAL_UART_Receive(&UART_Handle, &receive_data, 1, 0xFFFF);
+		receive_data = UART_Receive();
 		transmit_data = receive_data + 1;
-		HAL_UART_Transmit(&UART_Handle, &transmit_data, 1, 0xFFFF);
+		UART_Transmit(transmit_data);
 	}
 }
+// End Listing Poll_UART

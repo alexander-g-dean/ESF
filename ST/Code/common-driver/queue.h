@@ -1,7 +1,8 @@
 #ifndef QUEUE_H
 #define QUEUE_H
-
 #include <stdint.h>
+
+// Start Listing Q_Defs
 
 #define Q_MAX_SIZE (256)
 typedef struct {
@@ -12,7 +13,8 @@ typedef struct {
     unsigned int Tail;
     // Number of elements in use
     unsigned int Size;
-} volatile Q_T;
+} Q_T;
+// End Listing Q_Defs
 
 int Q_Enqueue(Q_T *q, uint8_t d);
 

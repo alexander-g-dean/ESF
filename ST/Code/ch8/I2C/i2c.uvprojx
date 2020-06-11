@@ -134,11 +134,11 @@
             <RunIndependent>0</RunIndependent>
             <UpdateFlashBeforeDebugging>1</UpdateFlashBeforeDebugging>
             <Capability>1</Capability>
-            <DriverSelection>-1</DriverSelection>
+            <DriverSelection>4096</DriverSelection>
           </Flash1>
           <bUseTDR>1</bUseTDR>
           <Flash2>BIN\UL2CM3.DLL</Flash2>
-          <Flash3></Flash3>
+          <Flash3>"" ()</Flash3>
           <Flash4></Flash4>
           <pFcarmOut></pFcarmOut>
           <pFcarmGrp></pFcarmGrp>
@@ -406,6 +406,11 @@
               <FileName>lsm6dso_reg.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\common-driver\lsm6dso_reg.c</FilePath>
+            </File>
+            <File>
+              <FileName>rgb.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\common-driver\rgb.c</FilePath>
             </File>
           </Files>
         </Group>

@@ -1,8 +1,8 @@
 #ifndef INERTIAL_SENSOR_H
 #define INERTIAL_SENSOR_H
 
-extern double roll;
-extern double pitch;
+extern float g_roll, g_pitch;
+extern int32_t g_x, g_y, g_z;
 
 void convert_xyz_to_roll_pitch(void);
 void read_full_xyz(void);
