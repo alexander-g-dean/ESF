@@ -1,6 +1,8 @@
 // Start Listing 2.RGB_DefInit
 #include <stm32f091xc.h>
 #include "delay.h"
+#include "field_access.h"
+#include "gpio.h"
 
 // Active-Low LED control definitions
 // 0 out = LED on
@@ -16,15 +18,10 @@ void RGB_Flasher_Init(void) {
 	// Enable peripheral clock of GPIOA
 	RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
 	// Configure the three pins as output
-	// Clear each mode field  to 00
-	GPIOA->MODER &= ~(GPIO_MODER_MODER5_Msk |
-										GPIO_MODER_MODER6_Msk |
-										GPIO_MODER_MODER7_Msk);
-	// Set each mode field to 01 for output
-	GPIOA->MODER |= _VAL2FLD(GPIO_MODER_MODER5, 1) |
-			_VAL2FLD(GPIO_MODER_MODER6,
-							 1) | _VAL2FLD(GPIO_MODER_MODER7,
-														 1);
+	MODIFY_FIELD(GPIOA->MODER, GPIO_MODER_MODER5, ESF_GPIO_MODER_OUTPUT);
+	MODIFY_FIELD(GPIOA->MODER, GPIO_MODER_MODER6, ESF_GPIO_MODER_OUTPUT);
+	MODIFY_FIELD(GPIOA->MODER, GPIO_MODER_MODER7, ESF_GPIO_MODER_OUTPUT);
+	
 	// Turn on LEDs 
 	GPIOA->BSRR =
 			LED_R_ON_MSK | LED_G_ON_MSK | LED_B_ON_MSK;
@@ -49,7 +46,7 @@ void RGB_Flasher_Sequential(void) {
 			GPIOA->BSRR = LED_B_ON_MSK;
 		else
 			GPIOA->BSRR = LED_B_OFF_MSK;
-		Delay(400000);
+		Delay(400);
 	}
 }
 // End Listing 2.RGB_Flasher
@@ -64,7 +61,7 @@ void RGB_Flasher_Parallel(void) {
 		GPIOA->ODR |= (~num & 0x07) << 5;	// Set given bits in field
 		// Note num is complemented with ~ so a 1 bit in num creates 
 		// a 0 output, turning on the LED
-		Delay(400000);
+		Delay(400);
 	}
 }
 // End Listing Listing 2.RGB_Flasher_Par

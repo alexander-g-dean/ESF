@@ -2,6 +2,8 @@
 #include <stm32f0xx_hal.h>
 #include "clock.h"
 #include "rgb.h"
+#include "field_access.h"
+#include "gpio.h"
 
 volatile uint32_t g_anem_period = 0;
 volatile uint32_t g_new_data = 0;
@@ -12,13 +14,8 @@ volatile float v_w = 0;
 void Init_PA9_Debug(void) {
 		// Enable peripheral clock of GPIOA
 	RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
-
-	// Configure the three pins as output
-	// Clear mode field to 00
-	GPIOA->MODER &= ~(GPIO_MODER_MODER9_Msk);
-	// Set mode field to 01 for output
-	GPIOA->MODER |= _VAL2FLD(GPIO_MODER_MODER9, 1);
-
+	// Configure the pin as output
+	MODIFY_FIELD(GPIOA->MODER, GPIO_MODER_MODER9, ESF_GPIO_MODER_OUTPUT);
 	// Clear output
 	GPIOA->BSRR = GPIO_BSRR_BR_9;
 }
@@ -42,9 +39,9 @@ void Init_TIM_IC(void) {
 	RCC->AHBENR |= RCC_AHBENR_GPIOBEN;
 
 	// Use alternate function for PB4
-	GPIOB->MODER = (GPIOB->MODER & ~(GPIO_MODER_MODER4)) | _VAL2FLD(GPIO_MODER_MODER4, 2);
+	MODIFY_FIELD(GPIOB->MODER, GPIO_MODER_MODER4, ESF_GPIO_MODER_ALT_FUNC);
 	// Connect PB4 to TIM3_CH1
-	GPIOB->AFR[0] |= _VAL2FLD(GPIO_AFRL_AFSEL4, 1);
+	MODIFY_FIELD(GPIOB->AFR[0], GPIO_AFRL_AFSEL4, 1);
 	
 	// Configure Time-Base
 	TIM3->ARR = 0xffff;

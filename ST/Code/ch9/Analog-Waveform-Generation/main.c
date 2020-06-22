@@ -3,6 +3,7 @@
 #include "clock.h"
 #include "rgb.h"
 #include "dac.h"
+#include "field_access.h"
 
 DMA_HandleTypeDef DMA_handle;
 
@@ -25,18 +26,6 @@ void Init_TriangleTable(void) {
 	}
 }
 // End Listing AWG_Init_TriangleTable
-
-// Start Listing AWG_Init_DAC
-void Init_DAC(void) {
-	// Enable clocks for DAC and PA4
-	RCC->APB1ENR |= RCC_APB1ENR_DACEN;
-	RCC->AHBENR |= RCC_AHBENR_GPIOAEN;	
-  // Init PA4 as analog by setting both MODER bits
-	GPIOA->MODER |= GPIO_MODER_MODER4;
-  // Init DAC1, connecting it to PA4
-	DAC1->CR = DAC_CR_EN1;
-}
-// End Listing AWG_Init_DAC
 
 DAC_HandleTypeDef DAC_HandleStruct;
 void HAL_Init_DAC(void) {
@@ -123,18 +112,18 @@ void HAL_Init_DMA_For_Playback(void) {
 void Init_DMA_For_Playback(void) {
 	// Enable DMA2 clock
 	RCC->AHBENR |= RCC_AHBENR_DMA2EN;
-	// Memory to peripheral mode, 16-bit data, 
-	DMA2_Channel3->CCR = _VAL2FLD(DMA_CCR_MSIZE, 1) | 
-		_VAL2FLD(DMA_CCR_PSIZE, 1) |
-		DMA_CCR_MINC | DMA_CCR_DIR | DMA_CCR_CIRC |
-		_VAL2FLD(DMA_CCR_PL, 3);  
+	// Memory to peripheral mode, 16-bit data
+	DMA2_Channel3->CCR = DMA_CCR_MINC | DMA_CCR_DIR | DMA_CCR_CIRC;
+	MODIFY_FIELD(DMA2_Channel3->CCR, DMA_CCR_MSIZE, 1); 
+	MODIFY_FIELD(DMA2_Channel3->CCR, DMA_CCR_PSIZE, 1);
+	MODIFY_FIELD(DMA2_Channel3->CCR, DMA_CCR_PL, 3);  
 
 	NVIC_SetPriority(DMA1_Ch4_7_DMA2_Ch3_5_IRQn, 3);
 	NVIC_ClearPendingIRQ(DMA1_Ch4_7_DMA2_Ch3_5_IRQn);
 	NVIC_EnableIRQ(DMA1_Ch4_7_DMA2_Ch3_5_IRQn);
 
 	// DMA2 Channel 3 requests come from TIM6_UP update (CxS = 0001)
-	DMA2->CSELR |= _VAL2FLD(DMA_CSELR_C3S, 1);
+	MODIFY_FIELD(DMA2->CSELR, DMA_CSELR_C3S, 1);
 }
 // End Listing AWG_Init_DMA
 
@@ -214,6 +203,6 @@ int main(void) {
 	Init_TIM();
 	Init_DAC();
 	Start_DMA((uint32_t *) TriangleTable, NUM_STEPS);
-	while (1);										// PA5 indicates ISR activity
+	while (1);	// PA5 low indicates ISR activity
 }
 // End Listing AWG_main

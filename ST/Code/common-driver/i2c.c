@@ -3,6 +3,7 @@
 #include "lsm6dso_reg.h"
 #include "i2c.h"
 #include "field_access.h"
+#include "gpio.h"
 
 I2C_HandleTypeDef I2C_Handle;
 
@@ -39,8 +40,8 @@ void I2C_Init(void) {
 	RCC->AHBENR |= RCC_AHBENR_GPIOBEN;
 	
   // GPIO B pin 8 and 9 in alternate function
-	MODIFY_FIELD(GPIOB->MODER, GPIO_MODER_MODER8, 2);
-	MODIFY_FIELD(GPIOB->MODER, GPIO_MODER_MODER9, 2);
+	MODIFY_FIELD(GPIOB->MODER, GPIO_MODER_MODER8, ESF_GPIO_MODER_ALT_FUNC);
+	MODIFY_FIELD(GPIOB->MODER, GPIO_MODER_MODER9, ESF_GPIO_MODER_ALT_FUNC);
 	// Select I2C1 (AF = 1) as alternate function
 	MODIFY_FIELD(GPIOB->AFR[1], GPIO_AFRH_AFSEL8, 1);
 	MODIFY_FIELD(GPIOB->AFR[1], GPIO_AFRH_AFSEL9, 1);	
@@ -114,7 +115,7 @@ void I2C_ReadReg(uint8_t dev_adx, uint8_t reg_adx, uint8_t *bufp,
 	tmp = I2C1->CR2;
 	MODIFY_FIELD(tmp, I2C_CR2_SADD, dev_adx << 1);
 	MODIFY_FIELD(tmp, I2C_CR2_RD_WRN, 1);	// Then read data
-	MODIFY_FIELD(tmp, I2C_CR2_NBYTES, data_len); // data byte count
+	MODIFY_FIELD(tmp, I2C_CR2_NBYTES, data_len); // Data byte count
 	MODIFY_FIELD(tmp, I2C_CR2_START, 1); // Start transfer
 	I2C1->CR2 = tmp;
 	// -- Read Data --

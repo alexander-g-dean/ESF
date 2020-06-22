@@ -25,7 +25,7 @@ void Init_SysTick(void) {
 // Start Listing SysTick_Handler
 void SysTick_Handler(void) {
 	static int n = 0;
-	Control_RGB_LEDs(n & 1, n & 1, n & 1);
+	Control_RGB_LEDs(n & 1, n & 2, n & 4);
 	n++;
 }
 

@@ -4,6 +4,7 @@
 #include "clock.h"
 #include "queue.h"
 #include "field_access.h"
+#include "gpio.h"
 
 UART_HandleTypeDef UART_Handle;
 /*********** USART **********/
@@ -44,8 +45,8 @@ void Init_USART2(int baud_rate) {
 	
 	// GPIO A pin 2 and 3 in alternate function 1 (USART2)
 	// Set mode field to 2 for alternate function
-	MODIFY_FIELD(GPIOA->MODER, GPIO_MODER_MODER2, 2);
-	MODIFY_FIELD(GPIOA->MODER, GPIO_MODER_MODER3, 2);
+	MODIFY_FIELD(GPIOA->MODER, GPIO_MODER_MODER2, ESF_GPIO_MODER_ALT_FUNC);
+	MODIFY_FIELD(GPIOA->MODER, GPIO_MODER_MODER3, ESF_GPIO_MODER_ALT_FUNC);
 	// Select USART2 (AF = 1) as alternate function
 	MODIFY_FIELD(GPIOA->AFR[0], GPIO_AFRL_AFSEL2, 1);
 	MODIFY_FIELD(GPIOA->AFR[0], GPIO_AFRL_AFSEL3, 1);

@@ -1,6 +1,8 @@
 #include <stm32f091xc.h>
 #include <stm32f0xx_hal.h>
 #include "clock.h"
+#include "field_access.h"
+#include "gpio.h"
 
 /* Debug bits show timing of copy operations: 
 	PB1 for software copy
@@ -11,11 +13,13 @@ void Init_MCO(void) { // Optional code to confirm CPU clock frequency
 	// Enable peripheral clock of GPIOA
 	RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
 	// Alternate function for PA8
-	GPIOA->MODER = (GPIOA->MODER & ~GPIO_MODER_MODER8) | _VAL2FLD(GPIO_MODER_MODER8, 2);
+	MODIFY_FIELD(GPIOA->MODER, GPIO_MODER_MODER8, ESF_GPIO_MODER_ALT_FUNC);
 	// MCO is ALT 0, so selected by default
+	MODIFY_FIELD(GPIOA->AFR[1], GPIO_AFRH_AFSEL8, 0);
 	
 	// Select MCO source 
-	RCC->CFGR |= RCC_CFGR_MCO_SYSCLK | _VAL2FLD(RCC_CFGR_MCOPRE, 2); // Divide by 4
+	RCC->CFGR |= RCC_CFGR_MCO_SYSCLK;
+	MODIFY_FIELD(RCC->CFGR, RCC_CFGR_MCOPRE, 2); // Divide by 4
 }
 
 // Start Listing DMA_Init_Compare_Arrays
@@ -65,14 +69,17 @@ void HAL_Init_DMA_To_Copy(void) {
 void Test_DMA_Copy(void) {
 	GPIOB->BSRR = GPIO_BSRR_BS_2;
 	RCC->AHBENR |= RCC_AHBENR_DMA1EN;
-	DMA1_Channel1->CCR = DMA_CCR_MEM2MEM | 
-		_VAL2FLD(DMA_CCR_MSIZE, 2) | _VAL2FLD(DMA_CCR_PSIZE, 2) |
-		DMA_CCR_MINC | DMA_CCR_PINC | DMA_CCR_DIR 
-		| _VAL2FLD(DMA_CCR_PL, 3);
-
+	
+	DMA1_Channel1->CCR = DMA_CCR_MEM2MEM | DMA_CCR_MINC | 
+		DMA_CCR_PINC | DMA_CCR_DIR;
+	MODIFY_FIELD(DMA1_Channel1->CCR, DMA_CCR_MSIZE, 2);  
+	MODIFY_FIELD(DMA1_Channel1->CCR, DMA_CCR_PSIZE, 2);
+	MODIFY_FIELD(DMA1_Channel1->CCR, DMA_CCR_PL, 3);
+		
 	DMA1_Channel1->CNDTR = ARR_SIZE;
 	DMA1_Channel1->CMAR = (uint32_t) s;
 	DMA1_Channel1->CPAR = (uint32_t) d;
+	
 	DMA1_Channel1->CCR |= DMA_CCR_EN;	// Enable DMA transfer
 	while (!(DMA1->ISR & DMA_ISR_TCIF1))
 		;
@@ -96,14 +103,9 @@ void Test_SW_Copy(void) {
 void Init_GPIO(void) {
 	// Enable peripheral clock of GPIOB
 	RCC->AHBENR |= RCC_AHBENR_GPIOBEN;
-
 	// Configure two pins as output
-	// Clear mode fields to 00
-	GPIOB->MODER &= ~(GPIO_MODER_MODER1 | GPIO_MODER_MODER2);
-	// Set mode fields to 01 for output
-	GPIOB->MODER |=	_VAL2FLD(GPIO_MODER_MODER1, 1) |
-			_VAL2FLD(GPIO_MODER_MODER2, 1);
-
+	MODIFY_FIELD(GPIOB->MODER, GPIO_MODER_MODER1, ESF_GPIO_MODER_OUTPUT);
+	MODIFY_FIELD(GPIOB->MODER, GPIO_MODER_MODER2, ESF_GPIO_MODER_OUTPUT);
 	// Clear outputs
 	GPIOB->BSRR = GPIO_BSRR_BR_1 | GPIO_BSRR_BR_2;
 }
@@ -132,7 +134,7 @@ void HAL_Init_GPIO(void) {
 int main(void) {
 	Set_Clocks_To_48MHz();
 	Init_GPIO();
-	Init_MCO();
+	//	Init_MCO(); // Confirm CPU clock speed
 	while (1) {
 		Init_Arrays();
 		Test_SW_Copy(); 	// PB1 == 1 when active 

@@ -2,6 +2,8 @@
 // #include <stm32f0xx_hal.h>
 #include "delay.h"
 #include "rgb.h"
+#include "field_access.h"
+#include "gpio.h"
 
 // Connect an analog voltage (0 to 3.3 V) to PA1 
 // for the comparator to monitor.
@@ -14,20 +16,22 @@ void Init_Comparator(void) {
 	RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
 
 	// Configure PA1 as analog input to comparator
-	// Init PA1 as analog by setting both MODER bits
-	GPIOA->MODER |= GPIO_MODER_MODER1;
+	// Set bit 1 MODER field to b11 for analog
+	// (ESF_GPIO_MODER_ANALOG = 3)
+	MODIFY_FIELD(GPIOA->MODER, GPIO_MODER_MODER1, ESF_GPIO_MODER_ANALOG);
 
 	// Configure PA6 as digital output from comparator
-	// Set bit 6 mode field to b10 for alternate function
-	GPIOA->MODER &= ~GPIO_MODER_MODER6;
-	GPIOA->MODER |= _VAL2FLD(GPIO_MODER_MODER6, 2);
+	// Set bit 6 MODER field to b10 for alternate function
+	// (ESF_GPIO_MODER_ALT_FUNC = 2)
+	MODIFY_FIELD(GPIOA->MODER, GPIO_MODER_MODER6, ESF_GPIO_MODER_ALT_FUNC);
+
 	// Select CMP1_OUT as alternate function for PA6.
 	// PA6 is in lower byte of port, so use AFRL, access as AFR[0] 
-	GPIOA->AFR[0] &= ~GPIO_AFRL_AFSEL6;
-	GPIOA->AFR[0] |= _VAL2FLD(GPIO_AFRL_AFSEL6, 7);
+	MODIFY_FIELD(GPIOA->AFR[0], GPIO_AFRL_AFRL6, 7);
 
 	// Comparator initialization
-	COMP->CSR = COMP_CSR_COMP1EN | _VAL2FLD(COMP_CSR_COMP1INSEL, 1);
+	MODIFY_FIELD(COMP->CSR, COMP_CSR_COMP1EN, 1);
+	MODIFY_FIELD(COMP->CSR, COMP_CSR_COMP1INSEL, 1);
 	
 	// Interrupt initialization
 	// Comparator 1: EXTI line 21

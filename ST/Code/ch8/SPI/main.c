@@ -2,29 +2,19 @@
 #include <stm32f0xx_hal.h>
 #include "rgb.h"
 #include "clock.h"
-
-#define CLEAR_FIELD(REG, FLD) 				((REG) &= ~(FLD))
-#define SET_FIELD(REG, FLD) 					((REG) |= (FLD))
-// For pre-aligned value AL_VAL
-#define MODIFY_FIELD_AL(REG, FLD, AL_VAL) ((REG) = ((REG) & ~(FLD)) | AL_VAL)
-// For unaligned value VAL
-// #define MODIFY_FIELD(REG, FLD, Val) ((REG) = ((REG) & ~(FLD)) | _VAL2FLD(FLD, Val))
-// #define MODIFY_FIELD(REG, Field, Val) ((REG) = _VAL2FLD(Field, Val))
-
-#define MODIFY_FIELD(reg, field, value) ((reg) = ((reg) & ~(field ## _Msk)) | (((uint32_t)(value) << field ## _Pos) & field ## _Msk))
+#include "field_access.h"
+#include "gpio.h"
 
 // Start Listing SPI_SPI_Init
 void Init_SPI1(void) {
   // Clock gating for SPI1 and GPIO A and B
 	RCC->APB2ENR |= RCC_APB2ENR_SPI1EN;
 	RCC->AHBENR |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOBEN;
-
   // GPIO A pin 15 in alternate function 0 (SPI1) for NSS
 	// Set mode field to 2 for alternate function
-	MODIFY_FIELD(GPIOA->MODER, GPIO_MODER_MODER15, 2);
+	MODIFY_FIELD(GPIOA->MODER, GPIO_MODER_MODER15, ESF_GPIO_MODER_ALT_FUNC);
 	// Select SPI1 (AF = 0) for alternate function
 	MODIFY_FIELD(GPIOA->AFR[1], GPIO_AFRH_AFSEL15, 0);
-	
   // GPIO B pin 3, 4, 5 in alternate function 0 (SPI1) for SCK, MISO, MOSI
 	// Set each mode field to 2 for alternate function
 	MODIFY_FIELD(GPIOB->MODER, GPIO_MODER_MODER3, 2);
@@ -37,8 +27,7 @@ void Init_SPI1(void) {
 
 	// Clock is divided by 16 (2^(BR+1))
 	MODIFY_FIELD(SPI1->CR1, SPI_CR1_BR, 3);
-	// Master mode
-	MODIFY_FIELD(SPI1->CR1, SPI_CR1_MSTR, 1);
+	MODIFY_FIELD(SPI1->CR1, SPI_CR1_MSTR, 1);	// Master mode
 	// Select first edge sample, active high clock
 	MODIFY_FIELD(SPI1->CR1, SPI_CR1_CPHA, 0);
 	MODIFY_FIELD(SPI1->CR1, SPI_CR1_CPOL, 1);
@@ -46,12 +35,10 @@ void Init_SPI1(void) {
 	MODIFY_FIELD(SPI1->CR1, SPI_CR1_LSBFIRST, 1);
 	// Data is 8 bits long
 	MODIFY_FIELD(SPI1->CR2, SPI_CR2_DS, 7);
-	
 	// RXNE when at least 1 byte in RX FIFO
 	MODIFY_FIELD(SPI1->CR2, SPI_CR2_FRXTH, 1);
 	// Have NSS pin asserted automatically
 	MODIFY_FIELD(SPI1->CR2, SPI_CR2_NSSP, 1);
-	
 	// Enable SPI
 	MODIFY_FIELD(SPI1->CR1, SPI_CR1_SPE, 1);
 }

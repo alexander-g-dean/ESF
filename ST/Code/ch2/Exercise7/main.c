@@ -1,26 +1,23 @@
 #include <stm32f091xc.h>
 #include <stm32f0xx_hal.h>
 #include "delay.h"
+#include "field_access.h"
 
 void Init_GPIO(void) {
 	// Enable peripheral clock of GPIOB
 	RCC->AHBENR |= RCC_AHBENR_GPIOBEN;
 
 	// Configure PB0 to PB3 in output mode for the LEDs
-	// Clear each field to 00. OR the masks together before complementing.
-	GPIOB->MODER &= ~(GPIO_MODER_MODER0_Msk | GPIO_MODER_MODER1_Msk |
-										GPIO_MODER_MODER2_Msk | GPIO_MODER_MODER3_Msk);
-	// Now OR in value 01 shifted to correct field positions
-	GPIOB->MODER |=
-			_VAL2FLD(GPIO_MODER_MODER0, 1) | _VAL2FLD(GPIO_MODER_MODER1,
-																								1) |
-			_VAL2FLD(GPIO_MODER_MODER2, 1) | _VAL2FLD(GPIO_MODER_MODER3, 1);
+	MODIFY_FIELD(GPIOB->MODER, GPIO_MODER_MODER0, 1);
+	MODIFY_FIELD(GPIOB->MODER, GPIO_MODER_MODER1, 1);
+	MODIFY_FIELD(GPIOB->MODER, GPIO_MODER_MODER2, 1);
+	MODIFY_FIELD(GPIOB->MODER, GPIO_MODER_MODER3, 1);
 
 	// Enable peripheral clock of GPIOC
 	RCC->AHBENR |= RCC_AHBENR_GPIOCEN;
 
 	// Configure PC13 to input mode for the switch
-	GPIOC->MODER &= ~GPIO_MODER_MODER13_Msk;
+	MODIFY_FIELD(GPIOC->MODER, GPIO_MODER_MODER13, 0);
 }
 
 void Exercise7(void) {
@@ -33,13 +30,13 @@ void Exercise7(void) {
 		// Wait until the switch is pressed
 		while (GPIOC->IDR & GPIO_IDR_13);
 		GPIOB->BSRR = GPIO_BSRR_BR_0;
-		// Use delays of 450000 for about 500 ms.
+		// Use delays of 450 for about 500 ms.
 		// Use delays of 30 for about 40 us.
-		Delay(450000);
+		Delay(450);
 		GPIOB->BSRR = GPIO_BSRR_BR_1;
-		Delay(450000);
+		Delay(450);
 		GPIOB->BSRR = GPIO_BSRR_BR_2;
-		Delay(450000);
+		Delay(450);
 		GPIOB->BSRR = GPIO_BSRR_BR_3;
 
 		// Wait until the switch is released 

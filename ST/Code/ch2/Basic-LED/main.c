@@ -1,25 +1,21 @@
 #include <stm32f091xc.h>
+#include "field_access.h"
+#include "gpio.h"
 
-void Basic_Light_Switching_Example(void) {
+void Basic_Light_Switching_Example_1(void) {
 
 	// Start Listing 2.4
 	// Enable peripheral clock of GPIOA (for LD2)
 	RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
-
-	// Configure PA5 in output mode. 
-	// First clear MODER5 field to 00
-	GPIOA->MODER &= ~GPIO_MODER_MODER5_Msk;
-	// Now OR in value 01 shifted to correct field position
-	GPIOA->MODER |= _VAL2FLD(GPIO_MODER_MODER5, 1);
-
+	// Configure PA5 in output mode (01=1) 
+	MODIFY_FIELD(GPIOA->MODER, GPIO_MODER_MODER5, ESF_GPIO_MODER_OUTPUT);
 	// Enable peripheral clock of GPIOC (for Switch B1)
 	RCC->AHBENR |= RCC_AHBENR_GPIOCEN;
-	// Configure PC13 in input mode - clear to 00
-	GPIOC->MODER &= ~GPIO_MODER_MODER13_Msk;
-	// Don't need to set any bits, since 00 is input mode
+	// Configure PC13 in input mode (00=0)
+	MODIFY_FIELD(GPIOC->MODER, GPIO_MODER_MODER13, ESF_GPIO_MODER_INPUT);
 	// End Listing 2.4
 	
-#if 0
+#if 1
 	// Start Listing 2.5
 	// Definitions for bit positions
 	#define LD2_POS (5)
@@ -61,21 +57,15 @@ void Basic_Light_Switching_Example(void) {
 #define LD2_ON_MSK	(GPIO_BSRR_BS_5)
 #define B1_IN_MSK		(GPIO_IDR_13)
 
-void Basic_Light_Switching_Example_2(void) {
+void Basic_Light_Switching_Example(void) {
 	// Enable peripheral clock of GPIOA (for LD2)
 	RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
-
-	// Configure PA5 in output mode. 
-	// First clear MODER5 field to 00
-	GPIOA->MODER &= ~GPIO_MODER_MODER5_Msk;
-	// Now OR in value 01 shifted to correct field position
-	GPIOA->MODER |= _VAL2FLD(GPIO_MODER_MODER5, 1);
-
+	// Configure PA5 in output mode (01=1) 
+	MODIFY_FIELD(GPIOA->MODER, GPIO_MODER_MODER5, ESF_GPIO_MODER_OUTPUT);
 	// Enable peripheral clock of GPIOC (for Switch B1)
 	RCC->AHBENR |= RCC_AHBENR_GPIOCEN;
-	// Configure PC13 in input mode - clear to 00
-	GPIOC->MODER &= ~GPIO_MODER_MODER13_Msk;
-	// Don't need to set any bits, since 00 bits select input
+	// Configure PC13 in input mode (00=0)
+	MODIFY_FIELD(GPIOC->MODER, GPIO_MODER_MODER13, ESF_GPIO_MODER_INPUT);
 
 	// Turn off LD2 
 	GPIOA->BSRR |= LD2_OFF_MSK;
@@ -90,23 +80,22 @@ void Basic_Light_Switching_Example_2(void) {
 	}
 }
 
+int main(void) {
+	Basic_Light_Switching_Example();
+}
 // End Listing 2.7
 
 void Alternate_Basic_Light_Switching_Example(void) {
 	// Enable peripheral clock of GPIOA (for LD2)
 	RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
 	// Configure PA5 in output mode. 
-	// First clear MODER5 field to 00
-	GPIOA->MODER &= ~GPIO_MODER_MODER5_Msk;
-	// Now OR in value 01 shifted to correct field position
-	GPIOA->MODER |=
-			GPIO_MODER_MODER5_Msk & (0x1 << GPIO_MODER_MODER5_Pos);
+	MODIFY_FIELD(GPIOA->MODER, GPIO_MODER_MODER5, ESF_GPIO_MODER_OUTPUT);
 
 	// Enable peripheral clock of GPIOC (for Switch B1)
 	RCC->AHBENR |= RCC_AHBENR_GPIOCEN;
-	// Configure PC13 in input mode - clear to 00
-	GPIOC->MODER &= ~GPIO_MODER_MODER13_Msk;
-	// Don't need to set any bits, since 00 bits select input
+	// Configure PC13 in input mode 
+	MODIFY_FIELD(GPIOC->MODER, GPIO_MODER_MODER13, ESF_GPIO_MODER_OUTPUT);
+
 
 	// Turn off LD2 
 	GPIOA->BSRR |= GPIO_BSRR_BR_5;
@@ -119,8 +108,4 @@ void Alternate_Basic_Light_Switching_Example(void) {
 			GPIOA->BSRR |= GPIO_BSRR_BS_5;
 		}
 	}
-}
-
-int main(void) {
-	Basic_Light_Switching_Example();
 }

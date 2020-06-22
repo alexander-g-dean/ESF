@@ -397,6 +397,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\common-driver\rgb.c</FilePath>
             </File>
+            <File>
+              <FileName>dac.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\common-driver\dac.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

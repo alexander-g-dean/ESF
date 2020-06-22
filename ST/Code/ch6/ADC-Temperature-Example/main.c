@@ -1,4 +1,6 @@
 #include <stm32f091xc.h>
+#include "field_access.h"
+#include "gpio.h"
 
 // Start Listing Temp_Init_ADC
 void Init_ADC(void) {
@@ -7,16 +9,18 @@ void Init_ADC(void) {
 	// Enable peripheral clock of GPIOA
 	RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
 	// Configure PA0 as analog input to ADC
-	// Set both MODER bits
-	GPIOA->MODER |= GPIO_MODER_MODER0;
+	// (ESF_GPIO_MODER_ANALOG = 3)
+	MODIFY_FIELD(GPIOA->MODER, GPIO_MODER_MODER0, ESF_GPIO_MODER_ANALOG);
+	
 	// Oscillator: Enable and Select HSI14 (from STM32F0 Reference Manual, A.7.4)
 	RCC->CR2 |= RCC_CR2_HSI14ON;	/* (2) Start HSI14 RC oscillator */
 	while ((RCC->CR2 & RCC_CR2_HSI14RDY) == 0) {	/* (3) Wait HSI14 is ready */
 		/* For robust implementation, add here time-out management */
 	}
-	ADC1->CFGR2 &= (~ADC_CFGR2_CKMODE);	/* (4) Select HSI14 with CKMODE=00 */
+	/* Select HSI14 with CKMODE=00 */
+	MODIFY_FIELD(ADC1->CFGR2, ADC_CFGR2_CKMODE, 0);
 	// Init ADCl
-	ADC1->SMPR &= ~ADC_SMPR_SMP;	// SMP = 000 for minimum sample time
+	MODIFY_FIELD(ADC1->SMPR, ADC_SMPR_SMP, 0);	// SMP = 000 for minimum sample time
 
 	/* CFGR1: The default configuration (CFGR1 = 0) matches what we want: 
 	   some features are disabled (analog watchdog, discontinous conversion 

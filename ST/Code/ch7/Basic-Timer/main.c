@@ -1,7 +1,8 @@
 #include <stm32f091xc.h>
-// #include <stm32f0xx_hal.h>
 #include "clock.h"
 #include "dac.h"
+#include "field_access.h"
+#include "gpio.h"
 
 #define DAC_RESOLUTION (4096)
 
@@ -58,11 +59,7 @@ void Init_GPIO(void) {
 	// Enable peripheral clock of GPIOA (for LD2)
 	RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
 	// Init PA7 as digital output
-	// Configure the pin as output
-	// Clear mode field  to 00
-	GPIOA->MODER &= ~GPIO_MODER_MODER7;
-	// Set mode field to 01 for output
-	GPIOA->MODER |= _VAL2FLD(GPIO_MODER_MODER7, 1);
+	MODIFY_FIELD(GPIOA->MODER, GPIO_MODER_MODER7, ESF_GPIO_MODER_OUTPUT);
 }
 
 /* Listing 7.7 */

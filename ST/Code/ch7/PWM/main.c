@@ -1,6 +1,8 @@
 #include <stm32f091xc.h>
 #include <stm32f0xx_hal.h>
 #include "clock.h"
+#include "field_access.h"
+#include "gpio.h"
 
 // Start Listing Init_Blue_LED_PWM
 #define F_TIM_CLOCK (48UL*1000UL*1000UL)	// 48 MHz
@@ -11,8 +13,8 @@
 void Init_Blue_LED_PWM(void) {
 	// Configure PA7 (blue LED) with alternate function 1: TIM3_CH2
 	RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
-	GPIOA->MODER = (GPIOA->MODER & (~GPIO_MODER_MODER7)) | _VAL2FLD(GPIO_MODER_MODER7, 2);
-	GPIOA->AFR[0] |= _VAL2FLD(GPIO_AFRL_AFRL7, 1);
+	MODIFY_FIELD(GPIOA->MODER, GPIO_MODER_MODER7, ESF_GPIO_MODER_ALT_FUNC);
+	MODIFY_FIELD(GPIOA->AFR[0], GPIO_AFRL_AFRL7, 1);
 
 	// Configure TIM3 counter and prescaler
 	RCC->APB1ENR |= RCC_APB1ENR_TIM3EN;
@@ -23,7 +25,8 @@ void Init_Blue_LED_PWM(void) {
 	// Configure TIM3 channel 2	
 	TIM3->CCR2 = 1;								// Short on-time by default
 	TIM3->CCER |= TIM_CCER_CC2P;	// active low polarity 
-	TIM3->CCMR1 |= _VAL2FLD(TIM_CCMR1_OC2M, 6) | TIM_CCMR1_OC2PE;	// PWM mode 1, use preload register
+	MODIFY_FIELD(TIM3->CCMR1, TIM_CCMR1_OC2M, 6); // Select PWM mode
+	TIM3->CCMR1 |= TIM_CCMR1_OC2PE;	 // Enable preload register
 	TIM3->EGR |= TIM_EGR_UG;			// Generate update
 	TIM3->CCER |= TIM_CCER_CC2E; // Enable channel output on OC2	
 	TIM3->BDTR |= TIM_BDTR_MOE;		// Enable main output

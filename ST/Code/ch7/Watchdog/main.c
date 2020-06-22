@@ -4,29 +4,30 @@
 #include "clock.h"
 #include "delay.h"
 #include "switch.h"
+#include "field_access.h"
+#include "gpio.h"
 
 
 WWDG_HandleTypeDef WWDG_Handle;
 WWDG_InitTypeDef WWDG_Init;
 
 // Start Listing Init_Service_WWDG
-#define WWDG_REFRESH (_VAL2FLD(WWDG_CR_T, 0x7f))
-#define WWDG_WINDOW (_VAL2FLD(WWDG_CFR_W, 0x7f))
 
 void Init_WWDG(void) {
 	// Enable peripheral clock for WWDG
 	RCC->APB1ENR |= RCC_APB1ENR_WWDGEN;
 	// Select the bus clock divided by 4096 * 8
-	WWDG->CFR =
-			_VAL2FLD(WWDG_CFR_WDGTB, 3) | WWDG_WINDOW;
-	// Load with initial counter value
-	WWDG->CR = WWDG_REFRESH;
+	MODIFY_FIELD(WWDG->CFR, WWDG_CFR_WDGTB, 3);
+	// Set window to be fully open - refresh anytime
+	MODIFY_FIELD(WWDG->CFR, WWDG_CFR_W, 0x7f);
+	// Load counter with initial counter value
+	MODIFY_FIELD(WWDG->CR, WWDG_CR_T, 0x7f);
 	// Activate the WWDG
 	WWDG->CR |= WWDG_CR_WDGA;
 }
 
 void Service_WWDG(void) {
-	WWDG->CR = WWDG_REFRESH;
+	MODIFY_FIELD(WWDG->CR, WWDG_CR_T, 0x7f);
 }
 // End Listing Service_WWDG
 
